@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory=$true)][string]$AircraftPackageDirectory,
     [string]$BackupDirectory = (Join-Path $PSScriptRoot ('Backups\animation-' + [guid]::NewGuid().ToString('N'))),
-    [switch]$RemoveFix
+    [switch]$RemoveFix,
+    [switch]$ValidateOnly
 )
 $ErrorActionPreference = 'Stop'
 $originalCode = '(L:B738_door_0, number) 1 *'
@@ -25,6 +26,7 @@ foreach ($variant in @('Blended','Scimitar')) {
     [xml]$validated = '<root>' + [regex]::Replace($newText,'<\?xml[^?]*\?>','') + '</root>'
     $changes += @{Path=$path; Relative=$relative; Text=$newText; Entry=$entries[0]; Changed=($currentCode -ne $targetCode)}
 }
+if ($ValidateOnly) { Write-Output 'Animation restoration preflight passed.'; return }
 if (!@($changes | Where-Object Changed).Count) { Write-Output 'L1 animation already matches requested configuration.'; return }
 New-Item -ItemType Directory -Path $BackupDirectory -Force | Out-Null
 Copy-Item -LiteralPath $layoutPath -Destination (Join-Path $BackupDirectory 'layout.json')

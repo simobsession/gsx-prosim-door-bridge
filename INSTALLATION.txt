@@ -1,10 +1,10 @@
 # GSX ProSim Door Bridge
 
-Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.5. No FSUIPC dependency and no Windows app installation required.
+Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.6. No FSUIPC dependency and no Windows app installation required.
 
 ## Getting started
 
-1. Download [version 0.2.5](GSX-ProSim-Door-Bridge-0.2.5.zip) and extract the entire ZIP to a permanent writable folder outside Community.
+1. Download [version 0.2.6](GSX-ProSim-Door-Bridge-0.2.6.zip) and extract the entire ZIP to a permanent writable folder outside Community.
 2. Close MSFS and double-click **Setup.exe**. Select your ProSim folder, check the detected MSFS/aircraft/GSX folders and click **Apply configuration**. The portable app folder defaults to the extracted folder.
 3. Start MSFS. The bridge starts automatically, appears in the notification area and exits when MSFS closes. You can also double-click **GSX-ProSim-Door-Bridge.exe**; it waits for MSFS if started first.
 
@@ -22,10 +22,12 @@ Handles all six passenger, service and cargo door requests. L1 status stays open
 
 ## Validation
 
-The 0.2.4 L1 close sequence passed a live test without a lockup. Version 0.2.5 adds the tray interface and graphical configuration; builds, quoting checks, fixture profile installation and repeat autostart checks passed. Live tray behavior, actual CDU operation, full service cycle and autostart regression tests remain to be completed. The earlier simulator lockup's cause is unconfirmed.
+The 0.2.4 L1 close sequence passed a live test without a lockup. Version 0.2.6 adds the tray interface and graphical configuration; builds, quoting checks, fixture profile installation and repeat autostart checks passed. Live tray behavior, actual CDU operation, full service cycle and autostart regression tests remain to be completed. The earlier simulator lockup's cause is unconfirmed.
 
-## Advanced / removal
+## Uninstall
 
-PowerShell utilities remain available for advanced use. With MSFS closed, `Install.ps1 -Uninstall` removes the MSFS startup entry and requests shutdown. The profile and animation patch are retained: restore the backed-up GSX profile or replace its bridge-dependent L1 check before removing the utility. `Patch-L1Animation.ps1 -AircraftPackageDirectory 'path to prosim-b738' -RemoveFix` reverses the known animation patch.
+Close MSFS, open Setup.exe and click **Uninstall integration**. The utility restores the recorded original GSX checks (or removes an unchanged profile it created), reverses its L1 animation fix, removes MSFS autostart and clears runtime settings/logs. Then close Setup and delete the portable folder to remove application files and local backups. No Windows service or app registration exists.
 
-Source: Bridge.cs, Signals.cs and Setup.cs. Build x64 .NET Framework winexe files; reference System.Windows.Forms.dll and System.Drawing.dll, plus your installed ProSimSDK.dll for the bridge.
+Original checks are recorded on first configuration and retained across updates. Uninstall preserves unrelated subsequent profile edits and other startup entries. If a affected check or generated profile was modified, removal stops for review instead of discarding those changes. For installations before 0.2.6, apply configuration with 0.2.6 first: the known legacy bridge L1 check is reverted to the normal B738_door_0 check; unrecorded historical settings cannot be reconstructed exactly.
+
+Source: Bridge.cs, Signals.cs and Setup.cs. Build x64 .NET Framework winexe files, referencing System.Windows.Forms.dll and System.Drawing.dll plus your installed ProSimSDK.dll for the bridge.
