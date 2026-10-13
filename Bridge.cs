@@ -6,14 +6,34 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml;
 using System.Collections.Concurrent;
+using System.Windows.Forms;
+using System.Drawing;
 using ProSimSDK;
 
 class Bridge {
  static string Root = AppDomain.CurrentDomain.BaseDirectory;
  static string ProSimDirectory, ProSimHost, SimulatorProcess;
+ static volatile bool ExitRequested;
+ static volatile string Status="Waiting for MSFS";
+ static bool Stopping() { return ExitRequested || File.Exists(Path.Combine(Root,"STOP")); }
+ sealed class Tray : ApplicationContext {
+  readonly NotifyIcon icon; readonly System.Windows.Forms.Timer timer;
+  public Tray() {
+   var menu=new ContextMenuStrip();
+   var status=menu.Items.Add(Status); status.Enabled=false;
+   menu.Items.Add("Configure / apply GSX profile",null,delegate { Process.Start(Path.Combine(Root,"Setup.exe")); });
+   menu.Items.Add("Open log",null,delegate { string p=Path.Combine(Root,"bridge-exe.log"); if(File.Exists(p))Process.Start("notepad.exe",p); });
+   menu.Items.Add("Exit bridge",null,delegate { ExitRequested=true; Status="Stopping"; });
+   icon=new NotifyIcon {Icon=SystemIcons.Application,Text="GSX ProSim Door Bridge",ContextMenuStrip=menu,Visible=true};
+   timer=new System.Windows.Forms.Timer {Interval=500}; timer.Tick+=delegate {status.Text=Status;icon.Text="GSX Door Bridge: "+Status;}; timer.Start();
+   var worker=new Thread(delegate() {try { Run(); }catch(Exception e){Log("Fatal: "+e);Status="Error — see log";} finally {ExitRequested=true;} }); worker.IsBackground=true;worker.Start();
+   timer.Tick+=delegate {if(ExitRequested && !worker.IsAlive)ExitThread();};
+  }
+  protected override void ExitThreadCore() {timer.Stop();timer.Dispose();icon.Visible=false;icon.Dispose();base.ExitThreadCore();}
+ }
  static void Log(string text) { try { File.AppendAllText(Path.Combine(Root,"bridge-exe.log"),DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")+" "+text+Environment.NewLine); } catch {} }
  class Door {
-  public string Name,Signal,Variable; public DataRef Ref; public bool Handled; public DateTime LowSince,LastCommand; public bool? LastProSimState;
+  public string Name,Signal,Variable; public DataRef Ref; public bool Handled; public DateTime LowSince,LastCommand;
   public Door(string n,string s,string v) { Name=n;Signal="FSDT_GSX_AIRCRAFT_"+s+"_TOGGLE";Variable=v; }
  }
  static bool SimRunning() { return Process.GetProcessesByName(SimulatorProcess).Length>0; }
@@ -26,6 +46,10 @@ class Bridge {
  static void SelfTest() { Log("Self-test: SDK="+typeof(ProSimConnect).Assembly.FullName+"; x64="+Environment.Is64BitProcess); }
  [STAThread] static void Main(string[] args) {
   try { ReadSettings(); } catch(Exception e) { Log("Settings error: "+e.Message);return; }
+  if(String.IsNullOrWhiteSpace(ProSimDirectory) || !File.Exists(Path.Combine(ProSimDirectory,"ProSimSDK.dll"))) {
+   MessageBox.Show("Choose your ProSim folder in the configuration window, then start the bridge again.","GSX ProSim Door Bridge");
+   Process.Start(Path.Combine(Root,"Setup.exe")); return;
+  }
   AppDomain.CurrentDomain.AssemblyResolve += delegate(object sender,ResolveEventArgs e) {
    string path=Path.Combine(ProSimDirectory,new AssemblyName(e.Name).Name+".dll");
    return File.Exists(path)?Assembly.LoadFrom(path):null;
@@ -36,18 +60,17 @@ class Bridge {
   if(Array.IndexOf(args,"--self-test")>=0) { try { SelfTest();Log("Self-test: direct SimConnect, no FSUIPC"); } catch(Exception e) { Log("Self-test failed: "+e); } return; }
   using(var mutex=new Mutex(false,@"Local\TonyGSXProSimDoorBridge")) {
    if(!mutex.WaitOne(0)) { Log("Another bridge is running; exiting");return; }
-   try { Run(); } catch(Exception e) { Log("Fatal: "+e); } finally { mutex.ReleaseMutex(); }
+   try { string stop=Path.Combine(Root,"STOP"); if(File.Exists(stop))File.Delete(stop); Application.EnableVisualStyles(); Application.Run(new Tray()); } catch(Exception e) { Log("Fatal: "+e); } finally { mutex.ReleaseMutex(); }
   }
  }
  static void Run() {
   // EXE.xml may launch us before the simulator process becomes visible.
-  DateTime waitUntil=DateTime.UtcNow.AddSeconds(60);
-  while(!SimRunning() && DateTime.UtcNow<waitUntil) Thread.Sleep(500);
-  if(!SimRunning()) { Log("Simulator absent; exiting");return; }
+  while(!SimRunning() && !Stopping()) Thread.Sleep(500);
+  if(Stopping())return;
   Log("Started; lifetime follows MSFS 2024; all six doors automatic");
 
   try {
-   while(SimRunning() && !File.Exists(Path.Combine(Root,"STOP"))) {
+   while(SimRunning() && !Stopping()) {
     using(var connection=new ProSimConnect("")) {
      try {
       connection.Connect(ProSimHost,true);
@@ -67,8 +90,8 @@ class Bridge {
       using(var signals=new Signals()) {
       foreach(var d in doors){signals.Subscribe(d.Signal);signals.Subscribe(d.Variable);}
       signals.SubscribeDefinition("NativeL1","INTERACTIVE POINT OPEN:0","percent");
-      Log("ProSim and direct SimConnect connected");string previous="";
-      while(SimRunning() && connection.isConnected && !File.Exists(Path.Combine(Root,"STOP"))) {
+      Log("ProSim and direct SimConnect connected");Status="Connected";string previous="";
+      while(SimRunning() && connection.isConnected && !Stopping()) {
        signals.Poll();
        bool changedOpen;double changedNative;
        while(l1Changes.TryDequeue(out changedOpen)) {
@@ -112,9 +135,9 @@ class Bridge {
        Thread.Sleep(250);
       }
       }
-     } catch(Exception e) { Log("Waiting/reconnecting: "+e.Message); }
+     } catch(Exception e) { Status="Reconnecting";Log("Waiting/reconnecting: "+e.Message); }
     }
-    for(int i=0;i<10 && SimRunning() && !File.Exists(Path.Combine(Root,"STOP"));i++)Thread.Sleep(500);
+    for(int i=0;i<10 && SimRunning() && !Stopping();i++)Thread.Sleep(500);
    }
   } finally { Log("Stopped; simulator closed or stop requested"); }
  }
