@@ -37,7 +37,7 @@ class Setup : Form {
  }
  public Setup() {
   Icon=new System.Drawing.Icon(typeof(Setup).Assembly.GetManifestResourceStream("DoorBridge.ico"));
-  Text="GSX ProSim Door Bridge Configuration — 0.2.8"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
+  Text="GSX ProSim Door Bridge Configuration — 0.2.9"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
   Controls.Add(new Label { Left=18,Top=15,Width=700,Height=40,Text="Configure this portable utility, corrected GSX profile and L1 animation fix.\nClose MSFS before installing. ProSimSDK.dll must be in your ProSim folder." });
   install.Text=Root.TrimEnd(Path.DirectorySeparatorChar);
   config.Text=DetectConfig(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),System.Security.Principal.WindowsIdentity.GetCurrent().User.Value,Environment.GetLogicalDrives());
@@ -89,6 +89,7 @@ class Setup : Form {
  }
  [STAThread] static void Main(string[] args) { if(args.Length==1 && args[0]=="--self-test") { if(Quote("a'b")!="'a''b'") Environment.Exit(1); return; } Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false); Application.Run(new Setup()); }
 }
+
 
 
 

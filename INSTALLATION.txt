@@ -1,6 +1,6 @@
 # GSX ProSim Door Bridge
 
-Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.8. No FSUIPC dependency and no Windows app installation required.
+Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.9. No FSUIPC dependency and no Windows app installation required.
 
 ## Getting started
 
@@ -26,7 +26,7 @@ Close MSFS, open Setup.exe and click **Uninstall integration**. The utility rest
 
 Original checks are recorded on first configuration and retained across updates. Uninstall preserves unrelated subsequent profile edits and other startup entries. If a affected check or generated profile was modified, removal stops for review instead of discarding those changes. For installations before 0.2.6, apply configuration with 0.2.7 first: the known legacy bridge L1 check is reverted to the normal B738_door_0 check; unrecorded historical settings cannot be reconstructed exactly.
 
-Source: Bridge.cs, Signals.cs and Setup.cs. Build x64 .NET Framework winexe files, referencing System.Windows.Forms.dll and System.Drawing.dll plus your installed ProSimSDK.dll for the bridge.
+Source: Bridge.cs, Signals.cs, SdkCompatibility.cs and Setup.cs. Build x64 .NET Framework winexe files, referencing System.Windows.Forms.dll and System.Drawing.dll plus your installed ProSimSDK.dll for the bridge.
 
 Version 0.2.7 adds an embedded multi-resolution door icon to the tray, application executable and configuration window. Rebuilding requires /win32icon:DoorBridge.ico and /resource:DoorBridge.ico,DoorBridge.ico for both executables.
 
@@ -40,4 +40,11 @@ Steam and Microsoft Store/Xbox app editions of MSFS 2024 on Windows are supporte
 The GSX profile belongs in %APPDATA%\Virtuali\Airplanes\prosim-b738-2026\800, not inside the aircraft Community package. Setup creates that folder and installs the included profile if it does not exist. Creating a profile manually in GSX first is not required. Restart Couatl after applying configuration. Aircraft/tail-specific profiles may override the base profile.
 
 Version 0.2.8 uses content-based backups for protected Store files and displays concise errors with operation/file context. It does not change source-file encryption or folder permissions.
+
+
+## ProSim SDK compatibility
+
+Version 0.2.9 supports either the public ProSimConnect(string) constructor or the public parameterless constructor. The remaining required SDK interface must also be compatible. The bridge loads the SDK from the configured ProSim folder and records its actual path, size, SHA-256, assembly/file/product versions and available constructors in bridge-exe.log. Version labels do not select behavior.
+
+An incompatible SDK produces an error dialog and the bridge exits after the dialog is dismissed. If startup fails, send bridge-exe.log from the portable folder; no SDK file sharing is required for initial diagnosis. Exit any old bridge instance before replacing files, then reapply configuration if the portable folder has moved.
 
