@@ -3,3 +3,6 @@ STOP
 Backups/
 *.pdb
 IntegrationState.json
+
+GSX-ProSim-Door-Bridge-*.zip
+GSX-ProSim-Door-Bridge-*.zip.sha256

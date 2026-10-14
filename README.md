@@ -4,7 +4,7 @@ Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.7. N
 
 ## Getting started
 
-1. Download [version 0.2.7](GSX-ProSim-Door-Bridge-0.2.7.zip) and extract the entire ZIP to a permanent writable folder outside Community.
+1. Download [latest version](https://github.com/simobsession/gsx-prosim-door-bridge/releases/latest) and extract the entire ZIP to a permanent writable folder outside Community.
 2. Close MSFS and double-click **Setup.exe**. Select your ProSim folder, check the detected MSFS/aircraft/GSX folders and click **Apply configuration**. The portable app folder defaults to the extracted folder.
 3. Start MSFS. The bridge starts automatically, appears in the notification area and exits when MSFS closes. You can also double-click **GSX-ProSim-Door-Bridge.exe**; it waits for MSFS if started first.
 
@@ -33,4 +33,5 @@ Original checks are recorded on first configuration and retained across updates.
 Source: Bridge.cs, Signals.cs and Setup.cs. Build x64 .NET Framework winexe files, referencing System.Windows.Forms.dll and System.Drawing.dll plus your installed ProSimSDK.dll for the bridge.
 
 Version 0.2.7 adds an embedded multi-resolution door icon to the tray, application executable and configuration window. Rebuilding requires /win32icon:DoorBridge.ico and /resource:DoorBridge.ico,DoorBridge.ico for both executables.
+
 
