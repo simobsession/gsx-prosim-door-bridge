@@ -20,10 +20,6 @@ Requirements: Windows x64, .NET Framework 4.8, MSFS 2024, GSX Pro and ProSim B73
 
 Handles all six passenger, service and cargo door requests. L1 status stays open for GSX until both ProSim and native MSFS report closed. Commands require the aircraft on the ground below one knot.
 
-## Validation
-
-The 0.2.4 L1 close sequence passed a live test without a lockup. Version 0.2.7 adds the tray interface and graphical configuration; builds, quoting checks, fixture profile installation and repeat autostart checks passed. Live tray behavior, actual CDU operation, full service cycle and autostart regression tests remain to be completed. The earlier simulator lockup's cause is unconfirmed.
-
 ## Uninstall
 
 Close MSFS, open Setup.exe and click **Uninstall integration**. The utility restores the recorded original GSX checks (or removes an unchanged profile it created), reverses its L1 animation fix, removes MSFS autostart and clears runtime settings/logs. Then close Setup and delete the portable folder to remove application files and local backups. No Windows service or app registration exists.
@@ -33,5 +29,6 @@ Original checks are recorded on first configuration and retained across updates.
 Source: Bridge.cs, Signals.cs and Setup.cs. Build x64 .NET Framework winexe files, referencing System.Windows.Forms.dll and System.Drawing.dll plus your installed ProSimSDK.dll for the bridge.
 
 Version 0.2.7 adds an embedded multi-resolution door icon to the tray, application executable and configuration window. Rebuilding requires /win32icon:DoorBridge.ico and /resource:DoorBridge.ico,DoorBridge.ico for both executables.
+
 
 
