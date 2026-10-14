@@ -14,7 +14,8 @@ class Setup : Form {
  static string Root=AppDomain.CurrentDomain.BaseDirectory;
  static string Quote(string s) { return "'"+s.Replace("'","''")+"'"; }
  public Setup() {
-  Text="GSX ProSim Door Bridge Configuration — 0.2.6"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
+  Icon=new System.Drawing.Icon(typeof(Setup).Assembly.GetManifestResourceStream("DoorBridge.ico"));
+  Text="GSX ProSim Door Bridge Configuration — 0.2.7"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
   Controls.Add(new Label { Left=18,Top=15,Width=700,Height=40,Text="Configure this portable utility, corrected GSX profile and L1 animation fix.\nClose MSFS before installing. ProSimSDK.dll must be in your ProSim folder." });
   install.Text=Root.TrimEnd(Path.DirectorySeparatorChar);
   config.Text=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Microsoft Flight Simulator 2024");
@@ -65,5 +66,6 @@ class Setup : Form {
  }
  [STAThread] static void Main(string[] args) { if(args.Length==1 && args[0]=="--self-test") { if(Quote("a'b")!="'a''b'") Environment.Exit(1); return; } Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false); Application.Run(new Setup()); }
 }
+
 
 

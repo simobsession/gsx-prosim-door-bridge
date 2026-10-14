@@ -24,12 +24,12 @@ class Bridge {
    menu.Items.Add("Configure / apply GSX profile",null,delegate { Process.Start(Path.Combine(Root,"Setup.exe")); });
    menu.Items.Add("Open log",null,delegate { string p=Path.Combine(Root,"bridge-exe.log"); if(File.Exists(p))Process.Start("notepad.exe",p); });
    menu.Items.Add("Exit bridge",null,delegate { ExitRequested=true; Status="Stopping"; });
-   icon=new NotifyIcon {Icon=SystemIcons.Application,Text="GSX ProSim Door Bridge",ContextMenuStrip=menu,Visible=true};
+   icon=new NotifyIcon {Icon=new Icon(typeof(Bridge).Assembly.GetManifestResourceStream("DoorBridge.ico"),32,32),Text="GSX ProSim Door Bridge",ContextMenuStrip=menu,Visible=true};
    timer=new System.Windows.Forms.Timer {Interval=500}; timer.Tick+=delegate {status.Text=Status;icon.Text="GSX Door Bridge: "+Status;}; timer.Start();
    var worker=new Thread(delegate() {try { Run(); }catch(Exception e){Log("Fatal: "+e);Status="Error — see log";} finally {ExitRequested=true;} }); worker.IsBackground=true;worker.Start();
    timer.Tick+=delegate {if(ExitRequested && !worker.IsAlive)ExitThread();};
   }
-  protected override void ExitThreadCore() {timer.Stop();timer.Dispose();icon.Visible=false;icon.Dispose();base.ExitThreadCore();}
+  protected override void ExitThreadCore() {timer.Stop();timer.Dispose();icon.Visible=false;icon.Icon.Dispose();icon.Dispose();base.ExitThreadCore();}
  }
  static void Log(string text) { try { File.AppendAllText(Path.Combine(Root,"bridge-exe.log"),DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")+" "+text+Environment.NewLine); } catch {} }
  class Door {
@@ -142,3 +142,4 @@ class Bridge {
   } finally { Log("Stopped; simulator closed or stop requested"); }
  }
 }
+
