@@ -6,3 +6,11 @@ IntegrationState.json
 
 GSX-ProSim-Door-Bridge-*.zip
 GSX-ProSim-Door-Bridge-*.zip.sha256
+
+*.exe
+*.dll
+DoorBridge-icon.png
+README.txt
+INSTALLATION.txt
+Start-Bridge.ps1
+Stop-Bridge.ps1

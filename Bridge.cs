@@ -50,7 +50,7 @@ class Bridge {
  }
  static void SelfTest() { Log("Self-test: SDK="+typeof(ProSimConnect).Assembly.FullName+"; x64="+Environment.Is64BitProcess); }
  [STAThread] static void Main(string[] args) {
-  Log("Bridge 0.2.9 starting; executable="+Application.ExecutablePath);
+  Log("Bridge 0.2.10 starting; executable="+Application.ExecutablePath);
   try { ReadSettings(); } catch(Exception e) { ShowFailure(e);Environment.ExitCode=1;return; }
   if(String.IsNullOrWhiteSpace(ProSimDirectory) || !File.Exists(Path.Combine(ProSimDirectory,"ProSimSDK.dll"))) {
    MessageBox.Show("Choose your ProSim folder in the configuration window, then start the bridge again.","GSX ProSim Door Bridge");
@@ -152,4 +152,5 @@ class Bridge {
   } finally { Log("Stopped; simulator closed or stop requested"); }
  }
 }
+
 

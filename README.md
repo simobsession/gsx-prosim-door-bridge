@@ -1,6 +1,6 @@
 # GSX ProSim Door Bridge
 
-Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.9. No FSUIPC dependency and no Windows app installation required.
+Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.10. No FSUIPC dependency and no Windows app installation required.
 
 ## Getting started
 
@@ -47,4 +47,7 @@ Version 0.2.8 uses content-based backups for protected Store files and displays 
 Version 0.2.9 supports either the public ProSimConnect(string) constructor or the public parameterless constructor. The remaining required SDK interface must also be compatible. The bridge loads the SDK from the configured ProSim folder and records its actual path, size, SHA-256, assembly/file/product versions and available constructors in bridge-exe.log. Version labels do not select behavior.
 
 An incompatible SDK produces an error dialog and the bridge exits after the dialog is dismissed. If startup fails, send bridge-exe.log from the portable folder; no SDK file sharing is required for initial diagnosis. Exit any old bridge instance before replacing files, then reapply configuration if the portable folder has moved.
+
+
+The repository contains source, integration scripts, the configuration template and icon source. Executables and SimConnect.dll are distributed only in Releases. The downloadable ZIP contains only runtime/configuration files and this guide; source files, duplicate guides and icon previews are omitted.
 

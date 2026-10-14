@@ -37,7 +37,7 @@ class Setup : Form {
  }
  public Setup() {
   Icon=new System.Drawing.Icon(typeof(Setup).Assembly.GetManifestResourceStream("DoorBridge.ico"));
-  Text="GSX ProSim Door Bridge Configuration — 0.2.9"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
+  Text="GSX ProSim Door Bridge Configuration — 0.2.10"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
   Controls.Add(new Label { Left=18,Top=15,Width=700,Height=40,Text="Configure this portable utility, corrected GSX profile and L1 animation fix.\nClose MSFS before installing. ProSimSDK.dll must be in your ProSim folder." });
   install.Text=Root.TrimEnd(Path.DirectorySeparatorChar);
   config.Text=DetectConfig(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),System.Security.Principal.WindowsIdentity.GetCurrent().User.Value,Environment.GetLogicalDrives());
@@ -70,7 +70,7 @@ class Setup : Form {
    string dest=Path.GetFullPath(install.Text.Trim());
    if(dest.StartsWith(Path.GetTempPath(),StringComparison.OrdinalIgnoreCase)) throw new Exception("Choose a permanent installation folder outside the temporary folder.");
    run.Enabled=false; output.Text="Applying configuration…";
-   string[] files={"GSX-ProSim-Door-Bridge.exe","SimConnect.dll","Install.ps1","Patch-L1Animation.ps1","Start-Bridge.ps1","Stop-Bridge.ps1","README.txt","INSTALLATION.txt","Setup.exe","Uninstall.ps1","InstallerFiles.ps1"};
+   string[] files={"GSX-ProSim-Door-Bridge.exe","SimConnect.dll","Install.ps1","Patch-L1Animation.ps1","README.md","Setup.exe","Uninstall.ps1","InstallerFiles.ps1"};
    foreach(string f in files) if(!File.Exists(Path.Combine(Root,f))) throw new Exception("Installer file missing: "+f+". Extract the complete ZIP first.");
    Directory.CreateDirectory(dest);
    foreach(string f in files) {string src=Path.GetFullPath(Path.Combine(Root,f)), dst=Path.Combine(dest,f); if(!String.Equals(src,dst,StringComparison.OrdinalIgnoreCase)) CopyContents(src,dst);}
@@ -89,6 +89,7 @@ class Setup : Form {
  }
  [STAThread] static void Main(string[] args) { if(args.Length==1 && args[0]=="--self-test") { if(Quote("a'b")!="'a''b'") Environment.Exit(1); return; } Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false); Application.Run(new Setup()); }
 }
+
 
 
 
