@@ -12,7 +12,6 @@ class Setup : Form {
  readonly CheckBox animation=new CheckBox();
  readonly Button run=new Button();
  static string Root=AppDomain.CurrentDomain.BaseDirectory;
- static string Quote(string s) { return "'"+s.Replace("'","''")+"'"; }
  static string DetectConfig(string roaming,string local,string sid,string[] drives) {
   var candidates=new System.Collections.Generic.List<string>();
   candidates.Add(Path.Combine(roaming,"Microsoft Flight Simulator 2024"));
@@ -26,18 +25,13 @@ class Setup : Form {
   try {var m=Regex.Match(File.ReadAllText(Path.Combine(folder,"UserCfg.opt")),"(?m)^\\s*InstalledPackagesPath\\s+\"([^\"]+)\"");if(m.Success)return Path.Combine(m.Groups[1].Value,@"Community\prosim-b738");}catch{}
   return Path.Combine(folder,@"Packages\Community\prosim-b738");
  }
- static string CleanOutput(string text) {
-  int start=text.IndexOf("#< CLIXML",StringComparison.Ordinal);
-  if(start>=0)text=text.Substring(0,start);
-  return text.Trim();
- }
  static void CopyContents(string source,string destination) {
   try {using(var input=File.OpenRead(source))using(var output=File.Create(destination))input.CopyTo(output);}
   catch(Exception e){throw new IOException("Could not copy "+source+" to "+destination+". "+e.Message,e);}
  }
  public Setup() {
   Icon=new System.Drawing.Icon(typeof(Setup).Assembly.GetManifestResourceStream("DoorBridge.ico"));
-  Text="GSX ProSim Door Bridge Configuration — 0.2.10"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
+  Text="GSX ProSim Door Bridge Configuration — 0.2.11"; ClientSize=new System.Drawing.Size(740,570); FormBorderStyle=FormBorderStyle.FixedDialog; MaximizeBox=false; StartPosition=FormStartPosition.CenterScreen;
   Controls.Add(new Label { Left=18,Top=15,Width=700,Height=40,Text="Configure this portable utility, corrected GSX profile and L1 animation fix.\nClose MSFS before installing. ProSimSDK.dll must be in your ProSim folder." });
   install.Text=Root.TrimEnd(Path.DirectorySeparatorChar);
   config.Text=DetectConfig(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),System.Security.Principal.WindowsIdentity.GetCurrent().User.Value,Environment.GetLogicalDrives());
@@ -70,25 +64,27 @@ class Setup : Form {
    string dest=Path.GetFullPath(install.Text.Trim());
    if(dest.StartsWith(Path.GetTempPath(),StringComparison.OrdinalIgnoreCase)) throw new Exception("Choose a permanent installation folder outside the temporary folder.");
    run.Enabled=false; output.Text="Applying configuration…";
-   string[] files={"GSX-ProSim-Door-Bridge.exe","SimConnect.dll","Install.ps1","Patch-L1Animation.ps1","README.md","Setup.exe","Uninstall.ps1","InstallerFiles.ps1"};
-   foreach(string f in files) if(!File.Exists(Path.Combine(Root,f))) throw new Exception("Installer file missing: "+f+". Extract the complete ZIP first.");
-   Directory.CreateDirectory(dest);
-   foreach(string f in files) {string src=Path.GetFullPath(Path.Combine(Root,f)), dst=Path.Combine(dest,f); if(!String.Equals(src,dst,StringComparison.OrdinalIgnoreCase)) CopyContents(src,dst);}
-   Directory.CreateDirectory(Path.Combine(dest,"Profiles"));
-   string cfg="prosim-b738-2026-gsx.cfg"; string srcCfg=Path.Combine(Root,"Profiles",cfg), dstCfg=Path.Combine(dest,"Profiles",cfg);
-   if(!String.Equals(Path.GetFullPath(srcCfg),Path.GetFullPath(dstCfg),StringComparison.OrdinalIgnoreCase)) CopyContents(srcCfg,dstCfg);
-   string command="$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; try { & "+Quote(Path.Combine(dest,"Install.ps1"))+" -ProSimDirectory "+Quote(prosim.Text)+" -ProSimHost "+Quote(host.Text)+" -SimulatorConfigDirectory "+Quote(config.Text)+" -AircraftProfileDirectory "+Quote(profile.Text)+" -AircraftPackageDirectory "+Quote(aircraft.Text)+(animation.Checked?"":" -SkipAnimationFix")+"; exit 0 } catch { Write-Output ('Operation failed at ' + $_.InvocationInfo.ScriptName + ':' + $_.InvocationInfo.ScriptLineNumber + '. ' + $_.Exception.Message); exit 1 }";
-   if(remove) command="$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; try { & "+Quote(Path.Combine(dest,"Uninstall.ps1"))+"; exit 0 } catch { Write-Output ('Operation failed at ' + $_.InvocationInfo.ScriptName + ':' + $_.InvocationInfo.ScriptLineNumber + '. ' + $_.Exception.Message); exit 1 }";
-   string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(command));
-   var psi=new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),@"WindowsPowerShell\v1.0\powershell.exe"),"-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded) {UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
-   string result=await Task.Run(()=> { using(var p=Process.Start(psi)) { var a=p.StandardOutput.ReadToEndAsync(); var b=p.StandardError.ReadToEndAsync(); p.WaitForExit(); Task.WaitAll(a,b); if(p.ExitCode!=0) throw new Exception(CleanOutput(a.Result)+Environment.NewLine+CleanOutput(b.Result)); return a.Result; } });
+   string sdk=prosim.Text, ip=host.Text, sim=config.Text, gsx=profile.Text, package=aircraft.Text; bool patch=animation.Checked;
+   string result;
+   if(remove) result=await Task.Run(()=>Installation.Uninstall(dest));
+   else {
+    string[] files={"GSX-ProSim-Door-Bridge.exe","SimConnect.dll","README.md","Setup.exe"};
+    foreach(string f in files) if(!File.Exists(Path.Combine(Root,f)))throw new IOException("Package file missing: "+f+". Extract the entire ZIP.");
+    Directory.CreateDirectory(dest);
+    foreach(string f in files){string src=Path.GetFullPath(Path.Combine(Root,f)),dst=Path.Combine(dest,f);if(!String.Equals(src,dst,StringComparison.OrdinalIgnoreCase))CopyContents(src,dst);}
+    Directory.CreateDirectory(Path.Combine(dest,"Profiles"));
+    string srcCfg=Path.Combine(Root,"Profiles","prosim-b738-2026-gsx.cfg"),dstCfg=Path.Combine(dest,"Profiles","prosim-b738-2026-gsx.cfg");
+    if(!String.Equals(Path.GetFullPath(srcCfg),Path.GetFullPath(dstCfg),StringComparison.OrdinalIgnoreCase))CopyContents(srcCfg,dstCfg);
+    result=await Task.Run(()=>Installation.Configure(dest,sdk,ip,sim,gsx,package,patch));
+   }
    if(remove) {output.Text=result+"\r\nClose this window and delete the portable folder to remove the remaining application files and backups.";return;}
    output.Text="Configuration applied.\r\n"+result+"\r\nRestart Couatl to load the GSX profile. The next MSFS launch starts the bridge. Restart the utility after changing its settings.\r\nInstalled in: "+dest;
   } catch(Exception ex) { output.Text="Installation did not complete.\r\n"+ex.Message; MessageBox.Show(this,ex.Message,"Installation",MessageBoxButtons.OK,MessageBoxIcon.Error); }
   finally {run.Enabled=true;}
  }
- [STAThread] static void Main(string[] args) { if(args.Length==1 && args[0]=="--self-test") { if(Quote("a'b")!="'a''b'") Environment.Exit(1); return; } Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false); Application.Run(new Setup()); }
+ [STAThread] static void Main(string[] args) { if(args.Length==1 && args[0]=="--self-test") {  return; } Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false); Application.Run(new Setup()); }
 }
+
 
 
 

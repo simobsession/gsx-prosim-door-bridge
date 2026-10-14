@@ -1,53 +1,44 @@
 # GSX ProSim Door Bridge
 
-Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.10. No FSUIPC dependency and no Windows app installation required.
+Portable tray utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.11. No FSUIPC or PowerShell dependency. No Windows service or app installation required.
 
-## Getting started
+## Download and configure
 
-1. Download [latest version](https://github.com/simobsession/gsx-prosim-door-bridge/releases/latest) and extract the entire ZIP to a permanent writable folder outside Community.
-2. Close MSFS and double-click **Setup.exe**. Select your ProSim folder, check the detected MSFS/aircraft/GSX folders and click **Apply configuration**. The portable app folder defaults to the extracted folder.
-3. Start MSFS. The bridge starts automatically, appears in the notification area and exits when MSFS closes. You can also double-click **GSX-ProSim-Door-Bridge.exe**; it waits for MSFS if started first.
+1. Download the application ZIP from [the latest release](https://github.com/simobsession/gsx-prosim-door-bridge/releases/latest), rather than GitHub's Source code ZIP.
+2. Extract the complete ZIP to a permanent writable folder outside Community. Close MSFS and exit any old bridge instance.
+3. Double-click **Setup.exe**. Select your ProSim folder and verify the detected MSFS config, aircraft package and GSX profile folders. Click **Apply configuration**.
+4. Restart Couatl to load the GSX profile. Start MSFS; the bridge launches automatically and appears in the notification area.
 
-Right-click the tray icon for connection status, configuration, log access or Exit. Exit stops the current instance; MSFS autostart remains enabled. After changing settings, exit and restart the utility. Keep the folder in place; apply configuration again if you move it.
+You can also double-click **GSX-ProSim-Door-Bridge.exe**. It waits for MSFS if started first and exits after the simulator closes. Right-click its tray icon for status, configuration, log access and Exit. Exit stops the current instance without removing autostart. Restart the bridge after changing its settings. Keep its portable folder in place; reapply configuration if it moves.
 
-## Included integration
+## Requirements and paths
 
-The corrected GSX profile is included at `Profiles/prosim-b738-2026-gsx.cfg`. Configuration installs it if no profile exists; otherwise it backs up the existing profile and changes the L1 and aft-service checks while preserving other settings. Airline/tail profiles may override the base profile. Restart Couatl to load profile changes.
+Windows x64, .NET Framework 4.8, MSFS 2024, GSX Pro and ProSim B738 with aircraft profile `prosim-b738-2026 / 800`. Steam and Microsoft Store/Xbox app editions on Windows are supported. SimConnect.dll is bundled; ProSimSDK.dll is loaded from your installed ProSim folder and is not distributed. Remote ProSim requires compatible SDK files locally and its host/IP in Setup.
 
-The optional L1 animation fix patches both Blended and Scimitar aircraft variants and backs up aircraft files. Apply it again after an aircraft update. Setup registers one MSFS EXE.xml autostart entry, preserving other entries. No Windows service, registry app registration or system-wide installation is used. Configuration uses bundled PowerShell scripts internally without opening a console.
+Setup checks Steam's roaming folder, Store LocalCache and current-user WpSystem folders on other drives. Verify the chosen config folder if multiple editions are installed. Aircraft detection uses UserCfg.opt; Browse supports custom paths.
 
-Requirements: Windows x64, .NET Framework 4.8, MSFS 2024, GSX Pro and ProSim B738 with aircraft profile `prosim-b738-2026 / 800`. ProSimSDK.dll is loaded from your installed ProSim directory and is not distributed. SimConnect.dll is included. For remote ProSim, enter its host/IP and supply compatible SDK files locally.
+The GSX user-profile folder is `%APPDATA%\Virtuali\Airplanes\prosim-b738-2026\800`. It is separate from the Community aircraft package. Setup creates it and installs the included profile when absent; no manual profile creation is needed. Existing profiles are backed up and only the L1 and aft-service checks are corrected. Airline/tail profiles may override the base profile.
 
-Handles all six passenger, service and cargo door requests. L1 status stays open for GSX until both ProSim and native MSFS report closed. Commands require the aircraft on the ground below one knot.
+## Integration
 
-## Uninstall
+Handles all six passenger, service and cargo door requests. L1 remains open for GSX until both ProSim and native MSFS report closed. Door commands require the aircraft on the ground below one knot.
 
-Close MSFS, open Setup.exe and click **Uninstall integration**. The utility restores the recorded original GSX checks (or removes an unchanged profile it created), reverses its L1 animation fix, removes MSFS autostart and clears runtime settings/logs. Then close Setup and delete the portable folder to remove application files and local backups. No Windows service or app registration exists.
+The optional L1 animation fix patches both Blended and Scimitar models and refreshes layout metadata. Reapply after aircraft updates. Configuration preserves other MSFS startup entries and creates one bridge autostart entry. File backups copy contents without changing source encryption or permissions.
 
-Original checks are recorded on first configuration and retained across updates. Uninstall preserves unrelated subsequent profile edits and other startup entries. If a affected check or generated profile was modified, removal stops for review instead of discarding those changes. For installations before 0.2.6, apply configuration with 0.2.7 first: the known legacy bridge L1 check is reverted to the normal B738_door_0 check; unrecorded historical settings cannot be reconstructed exactly.
+Configuration and uninstall run directly inside Setup.exe. No PowerShell, encoded commands, execution-policy changes or shell processes are used. This does not guarantee acceptance by every antivirus product.
 
-Source: Bridge.cs, Signals.cs, SdkCompatibility.cs and Setup.cs. Build x64 .NET Framework winexe files, referencing System.Windows.Forms.dll and System.Drawing.dll plus your installed ProSimSDK.dll for the bridge.
+## SDK diagnostics
 
-Version 0.2.7 adds an embedded multi-resolution door icon to the tray, application executable and configuration window. Rebuilding requires /win32icon:DoorBridge.ico and /resource:DoorBridge.ico,DoorBridge.ico for both executables.
+Supports public string or parameterless ProSimConnect constructors, provided the remaining required SDK interface is compatible. The bridge logs the loaded DLL path, size, SHA-256, versions and constructors in bridge-exe.log. An incompatibility shows an error and exits after dismissal. Send the log for diagnosis; version labels do not select behavior.
 
+## Uninstall / upgrade
 
+Close MSFS. Open Setup.exe in the configured portable folder and click **Uninstall integration**. It restores recorded original GSX checks, removes an unchanged profile it created, reverses the L1 animation fix, removes autostart and clears runtime settings/logs. Unrelated subsequent changes are preserved; conflicting door-check changes require review. Close Setup and delete the portable folder to remove remaining files and local backups.
 
+Restoration records from 0.2.6–0.2.10 remain supported. For earlier integrations, apply configuration first to record the known legacy checks; unrecorded historical settings cannot be reconstructed exactly. To upgrade, exit the bridge and replace application files in the same folder, preserving BridgeSettings.xml, IntegrationState.json and Backups. Do not overwrite configured settings with the blank template.
 
-## Microsoft Store and first-time GSX setup
+## Source
 
-Steam and Microsoft Store/Xbox app editions of MSFS 2024 on Windows are supported. Setup checks the Steam roaming folder, Store LocalCache folder and current-user WpSystem folders on other drives. If both editions are installed, verify the selected config folder. Changing the config folder refreshes aircraft package detection using UserCfg.opt; custom paths can also be selected with Browse.
+Bridge.cs, Signals.cs and SdkCompatibility.cs build the x64 .NET Framework bridge, referencing your installed ProSimSDK.dll. Setup.cs and Installation.cs build the x64 GUI, referencing System.Web.Extensions.dll. Both builds reference System.Windows.Forms.dll and System.Drawing.dll and embed DoorBridge.ico using `/win32icon:DoorBridge.ico /resource:DoorBridge.ico,DoorBridge.ico`.
 
-The GSX profile belongs in %APPDATA%\Virtuali\Airplanes\prosim-b738-2026\800, not inside the aircraft Community package. Setup creates that folder and installs the included profile if it does not exist. Creating a profile manually in GSX first is not required. Restart Couatl after applying configuration. Aircraft/tail-specific profiles may override the base profile.
-
-Version 0.2.8 uses content-based backups for protected Store files and displays concise errors with operation/file context. It does not change source-file encryption or folder permissions.
-
-
-## ProSim SDK compatibility
-
-Version 0.2.9 supports either the public ProSimConnect(string) constructor or the public parameterless constructor. The remaining required SDK interface must also be compatible. The bridge loads the SDK from the configured ProSim folder and records its actual path, size, SHA-256, assembly/file/product versions and available constructors in bridge-exe.log. Version labels do not select behavior.
-
-An incompatible SDK produces an error dialog and the bridge exits after the dialog is dismissed. If startup fails, send bridge-exe.log from the portable folder; no SDK file sharing is required for initial diagnosis. Exit any old bridge instance before replacing files, then reapply configuration if the portable folder has moved.
-
-
-The repository contains source, integration scripts, the configuration template and icon source. Executables and SimConnect.dll are distributed only in Releases. The downloadable ZIP contains only runtime/configuration files and this guide; source files, duplicate guides and icon previews are omitted.
-
+Executables and runtime dependencies are distributed only through Releases. The repository contains essential source, the icon, configuration template, GSX profile and this guide.

@@ -14,3 +14,5 @@ README.txt
 INSTALLATION.txt
 Start-Bridge.ps1
 Stop-Bridge.ps1
+
+*.ps1
