@@ -1,6 +1,6 @@
 # GSX ProSim Door Bridge
 
-Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.7. No FSUIPC dependency and no Windows app installation required.
+Portable background utility for GSX, ProSim B738 and MSFS 2024. Version 0.2.8. No FSUIPC dependency and no Windows app installation required.
 
 ## Getting started
 
@@ -31,4 +31,13 @@ Source: Bridge.cs, Signals.cs and Setup.cs. Build x64 .NET Framework winexe file
 Version 0.2.7 adds an embedded multi-resolution door icon to the tray, application executable and configuration window. Rebuilding requires /win32icon:DoorBridge.ico and /resource:DoorBridge.ico,DoorBridge.ico for both executables.
 
 
+
+
+## Microsoft Store and first-time GSX setup
+
+Steam and Microsoft Store/Xbox app editions of MSFS 2024 on Windows are supported. Setup checks the Steam roaming folder, Store LocalCache folder and current-user WpSystem folders on other drives. If both editions are installed, verify the selected config folder. Changing the config folder refreshes aircraft package detection using UserCfg.opt; custom paths can also be selected with Browse.
+
+The GSX profile belongs in %APPDATA%\Virtuali\Airplanes\prosim-b738-2026\800, not inside the aircraft Community package. Setup creates that folder and installs the included profile if it does not exist. Creating a profile manually in GSX first is not required. Restart Couatl after applying configuration. Aircraft/tail-specific profiles may override the base profile.
+
+Version 0.2.8 uses content-based backups for protected Store files and displays concise errors with operation/file context. It does not change source-file encryption or folder permissions.
 

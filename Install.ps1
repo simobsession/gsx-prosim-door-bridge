@@ -8,10 +8,12 @@ param(
     [switch]$Uninstall
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'InstallerFiles.ps1')
 if($Uninstall) { & (Join-Path $PSScriptRoot 'Uninstall.ps1'); return }
 $statePath=Join-Path $PSScriptRoot 'IntegrationState.json'
 $state=$null
 if(Test-Path -LiteralPath $statePath){$state=Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json}
+if($AircraftProfileDirectory -match '(?i)[\\/]Community[\\/]|[\\/]SimObjects[\\/]'){throw 'GSX profile folder must be the GSX user-profile folder, not the aircraft package. Use %APPDATA%\Virtuali\Airplanes\prosim-b738-2026\800; it will be created if missing.'}
 $exeXmlPath = Join-Path $SimulatorConfigDirectory 'EXE.xml'
 if (!(Test-Path -LiteralPath $exeXmlPath)) { throw "EXE.xml not found at $exeXmlPath. Supply -SimulatorConfigDirectory for your installation." }
 $exeXml = [xml][IO.File]::ReadAllText($exeXmlPath)
@@ -20,7 +22,7 @@ $entryName = 'GSX ProSim Door Bridge'
 $entries = @($exeXml.SelectNodes('/SimBase.Document/Launch.Addon') | Where-Object { $_.Name -eq $entryName })
 $backupFolder = Join-Path $PSScriptRoot ('Backups\' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $backupFolder -Force | Out-Null
-Copy-Item -LiteralPath $exeXmlPath -Destination (Join-Path $backupFolder 'EXE.xml')
+Copy-BridgeFileContent -Source $exeXmlPath -Destination (Join-Path $backupFolder 'EXE.xml')
 if ($Uninstall) {
     foreach ($entry in $entries) { [void]$exeXml.DocumentElement.RemoveChild($entry) }
     $exeXml.Save($exeXmlPath)
@@ -79,7 +81,7 @@ $settings.Save((Join-Path $PSScriptRoot 'BridgeSettings.xml'))
 # Preserve existing aircraft customizations; change only the two known checks.
 $profilePath = Join-Path $AircraftProfileDirectory 'gsx.cfg'
 if (Test-Path -LiteralPath $profilePath) {
-    Copy-Item -LiteralPath $profilePath -Destination (Join-Path $backupFolder 'gsx.cfg')
+    Copy-BridgeFileContent -Source $profilePath -Destination (Join-Path $backupFolder 'gsx.cfg')
     $profileText = [IO.File]::ReadAllText($profilePath)
 } else { $profileText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Profiles\prosim-b738-2026-gsx.cfg')) }
 foreach ($edit in @(@{Section='exit1';Code='(L:Tony_GSX_ProSim_L1_Open, bool)'},@{Section='service2';Code='(L:B738_door_3, number) 1*'})) {
@@ -102,4 +104,6 @@ $stopFile = Join-Path $PSScriptRoot 'STOP'
 if (Test-Path -LiteralPath $stopFile) { Remove-Item -LiteralPath $stopFile }
 Write-Output "Installed autostart, GSX checks and requested animation fix. Backups: $backupFolder"
 Write-Output 'Keep this folder in its current location. Restart Couatl to reload the profile. Next MSFS launch starts the bridge automatically.'
+
+
 

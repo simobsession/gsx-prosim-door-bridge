@@ -5,6 +5,7 @@ param(
     [switch]$ValidateOnly
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'InstallerFiles.ps1')
 $originalCode = '(L:B738_door_0, number) 1 *'
 $fixedCode = '(L:B738_door_0, number) (A:INTERACTIVE POINT OPEN:0, percent) 1.99 * max'
 $pattern = '(?s)(<Name>Pass_Door_Left_Front</Name>.*?<Code>)(.*?)(</Code>)'
@@ -29,11 +30,11 @@ foreach ($variant in @('Blended','Scimitar')) {
 if ($ValidateOnly) { Write-Output 'Animation restoration preflight passed.'; return }
 if (!@($changes | Where-Object Changed).Count) { Write-Output 'L1 animation already matches requested configuration.'; return }
 New-Item -ItemType Directory -Path $BackupDirectory -Force | Out-Null
-Copy-Item -LiteralPath $layoutPath -Destination (Join-Path $BackupDirectory 'layout.json')
+Copy-BridgeFileContent -Source $layoutPath -Destination (Join-Path $BackupDirectory 'layout.json')
 foreach ($change in $changes) {
     $savedPath = Join-Path $BackupDirectory $change.Relative
     New-Item -ItemType Directory -Path (Split-Path $savedPath) -Force | Out-Null
-    Copy-Item -LiteralPath $change.Path -Destination $savedPath
+    Copy-BridgeFileContent -Source $change.Path -Destination $savedPath
 }
 try {
     foreach ($change in $changes) {
@@ -50,8 +51,9 @@ try {
         if ($entry.size -ne $file.Length -or $entry.date -ne $file.LastWriteTimeUtc.ToFileTimeUtc()) { throw 'Layout verification failed' }
     }
 } catch {
-    foreach ($change in $changes) { Copy-Item -LiteralPath (Join-Path $BackupDirectory $change.Relative) -Destination $change.Path -Force }
-    Copy-Item -LiteralPath (Join-Path $BackupDirectory 'layout.json') -Destination $layoutPath -Force
+    foreach ($change in $changes) { Copy-BridgeFileContent -Source (Join-Path $BackupDirectory $change.Relative) -Destination $change.Path }
+    Copy-BridgeFileContent -Source (Join-Path $BackupDirectory 'layout.json') -Destination $layoutPath
     throw
 }
 Write-Output "L1 animation updated in both variants; backup: $BackupDirectory"
+
